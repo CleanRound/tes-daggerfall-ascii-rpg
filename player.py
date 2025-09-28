@@ -5,6 +5,8 @@ import winsound
 import time
 from animation import ending
 
+REQUEST_AUTOSAVE = False
+
 class Player(object):
     def __init__ (self,health,gold,strength,mana,exp,healing_potion,mana_potion):
         self.inventory = ["Spell book"]

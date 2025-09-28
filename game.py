@@ -10,8 +10,8 @@ from intro import Intro
 import time
 import winsound
 import pathlib
-import io, gzip, hashlib, tempfile
-from datetime import datetime
+import gzip, hashlib, tempfile
+import player as _player_mod
 
 SAVES_DIR = pathlib.Path("saves"); SAVES_DIR.mkdir(exist_ok=True)
 SAVE_MAGIC = b"MYGAME\0"   # keep as your game id
@@ -36,56 +36,34 @@ def _unpack(buf: bytes) -> dict:
     state["_meta"]["version"] = ver
     return state
 
-def _ensure_ext(name: str) -> str:
-    """Make sure the file name ends with .sav (users can type bare names)."""
-    name = name.strip()
-    if not name:
-        return "slot1.sav"
-    # basic cleanup
-    name = "".join(c for c in name if c.isalnum() or c in ("-", "_", ".", " ")).strip()
-    # add .sav if missing
-    return name if name.lower().endswith(".sav") else f"{name}.sav"
+def rebuild_derived():
+    """Recompute derived state after loading a save."""
+    global position, max_x, max_y
 
-def _list_saves():
-    """Return list of Path objects for *.sav sorted by mtime desc."""
-    files = sorted(SAVES_DIR.glob("*.sav"), key=lambda p: p.stat().st_mtime, reverse=True)
-    return files
+    # Make sure map bounds are correct (used by movement clamps/render)
+    try:
+        max_y = len(mapChoice) - 1
+        max_x = len(mapChoice[0]) - 1
+    except Exception:
+        pass
 
-def _choose_save_interactive(title: str = "Load which save?"):
-    """Show a numbered menu of saves; return selected Path or None (cancel)."""
-    saves = _list_saves()
-    if not saves:
-        print("No saves found.")
-        input("Press [Enter] to continue.")
-        return None
-    print(title)
-    for i, p in enumerate(saves, 1):
-        ts = datetime.fromtimestamp(p.stat().st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-        print(f"  {i}) {p.stem}   [{ts}]")
-    print("  Enter to cancel")
-    choice = input("Choose a number: ").strip()
-    if not choice:
-        return None
-    if not choice.isdigit():
-        print("Invalid choice.")
-        input("Press [Enter] to continue.")
-        return None
-    idx = int(choice)
-    if idx < 1 or idx > len(saves):
-        print("Out of range.")
-        input("Press [Enter] to continue.")
-        return None
-    return saves[idx - 1]
+    # Ensure the map marker and position are consistent
+    try:
+        playerMap[y][x] = "@"
+        position = mapChoice[y][x]
+    except Exception:
+        pass
 
-def save_game(slot: str | None = None):
-    """Pickle full game state to /saves/<slot>.sav with atomic replace and backup."""
-    # let the player type just the name (no .sav). If slot is None, ask.
-    if slot is None:
-        clear_screen_2()
-        name = input("Save name (default: slot1): ").strip() or "slot1"
-        slot = _ensure_ext(name)
-    else:
-        slot = _ensure_ext(slot)
+    # If your Player class has a recompute hook, call it safely
+    try:
+        hero.recalc_stats()
+    except Exception:
+        pass
+
+def save_game(slot: str | None = None, silent: bool = False):
+    """Autosave only: write to /saves/autosave.sav with atomic replace and .bak backup."""
+    # fixed autosave filename (manual names are gone)
+    slot = "autosave.sav"
 
     state = {
         "_meta": {"version": SAVE_VERSION, "timestamp": time.time()},
@@ -106,71 +84,102 @@ def save_game(slot: str | None = None):
             f.write(blob)
             f.flush(); os.fsync(f.fileno())
 
-        # optional: backup previous
+        # backup previous autosave, if any
         if target.exists():
             backup = target.with_suffix(target.suffix + ".bak")
-            try: os.replace(target, backup)
-            except Exception: pass
+            try:
+                os.replace(target, backup)
+            except Exception:
+                pass
 
-        os.replace(tmp_path, target)  # atomic on same filesystem
+        # atomic replace
+        os.replace(tmp_path, target)
 
-        # UX: clear + confirmation
-        clear_screen_2()
-        print(f"Saved successfully as: {target.stem}")
-        input("Press [Enter] to continue.")
+        # UX only for manual saves (we run silent=True for autosaves)
+        if not silent:
+            clear_screen_2()
+            print(f"Saved successfully as: {target.stem}")
+            input("Press [Enter] to continue.")
     except Exception as e:
-        try: tmp_path.unlink()
-        except Exception: pass
+        try:
+            tmp_path.unlink()
+        except Exception:
+            pass
         print("Could not save game:", e)
         input("Press [Enter] to continue.")
 
-def load_game(slot: str | None = None):
-    """Load via numbered picker if slot not provided; else load that slot (name w/o .sav ok)."""
+
+def load_game():
+    """Load the latest autosave (saves/autosave.sav) with a simple confirmation."""
     global hero, x, y, playerMap, local_name, music, position
 
-    # If no slot given, show menu
-    path = None
-    if slot is None:
-        clear_screen_2()
-        path = _choose_save_interactive("Available saves:")
-        if path is None:
-            return
-    else:
-        path = SAVES_DIR / _ensure_ext(slot)
-        if not path.exists():
-            print(f"Save not found: {path.stem}")
-            input("Press [Enter] to continue.")
-            return
+    path = SAVES_DIR / "autosave.sav"
+    if not path.exists():
+        print("No autosave found (saves/autosave.sav).")
+        input("Press [Enter] to continue.")
+        return
 
+    print(f"Found autosave: {path.name}")
+    ans = input("Load the latest autosave? Type YES to confirm: ").strip().upper()
+    if ans != "YES":
+        print("Load cancelled.")
+        input("Press [Enter] to continue.")
+        return
+
+    # --- read & unpack with backup recovery ---
     try:
         with open(path, "rb") as f:
             buf = f.read()
         state = _unpack(buf)
-        ver = state["_meta"].get("version", 0)
+    except Exception:
+        # try .bak fallback
+        bak = path.with_suffix(path.suffix + ".bak")
+        if bak.exists():
+            print("Autosave appears corrupted. Trying backup (.bak)...")
+            try:
+                with open(bak, "rb") as f:
+                    buf = f.read()
+                state = _unpack(buf)
+                print("Loaded from backup.")
+                # Optionally promote .bak back to main:
+                try:
+                    with open(path, "wb") as f:
+                        f.write(buf)
+                except Exception:
+                    pass
+            except Exception:
+                print("Backup is also unreadable.")
+                input("Press [Enter] to continue.")
+                return
+        else:
+            print("Autosave unreadable and no backup found.")
+            input("Press [Enter] to continue.")
+            return
 
-        hero       = state["hero"]
-        x, y       = state["x"], state["y"]
-        playerMap  = state["playerMap"]
-        local_name = state.get("local_name", "Nameless")
-        music      = state.get("music", 0)
+    # --- restore state ---
+    hero       = state["hero"]
+    x, y       = state["x"], state["y"]
+    playerMap  = state["playerMap"]
+    local_name = state.get("local_name", "Nameless")
+    music      = state.get("music", 0)
 
-        # redraw marker & position
-        playerMap[y][x] = "@"
-        position = mapChoice[y][x]
+    # place the player marker and rebuild any derived values
+    playerMap[y][x] = "@"
+    try:
+        rebuild_derived()
+    except Exception:
+        pass
 
-        # optional: resume background loop
-        try:
-            winsound.PlaySound(".\\music\\background.wav", winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
-        except Exception:
-            pass
+    # resume background music
+    try:
+        winsound.PlaySound(".\\music\\background.wav",
+                           winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+    except Exception:
+        pass
 
-        clear_screen_2()
-        print(f"Loaded: {path.stem} (v{ver})")
-        input("Press [Enter] to continue.")
-    except Exception as e:
-        print("Could not load game:", e)
-        input("Press [Enter] to continue.")
-# --- END USER-FRIENDLY HELPERS ---
+    print("Autosave loaded successfully.")
+    input("Press [Enter] to continue.")
+
 
 gameloop=True
 
@@ -235,6 +244,10 @@ winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SN
 
 
 while gameloop == True:
+    if getattr(_player_mod, "REQUEST_AUTOSAVE", False):
+        # save to a fixed slot so players can’t scum by name-hopping
+        save_game("autosave", silent=True)
+        _player_mod.REQUEST_AUTOSAVE = False
     while True:
         previousX = x
         previousY = y
@@ -252,14 +265,11 @@ while gameloop == True:
         print("Armour:",hero.armour.name,hero.armour.protection,"PROT+","| Weapon:",hero.weapon.name,hero.weapon.damage,"DAM+")
         hero.turn_counter+=1
         hero.mana=min(hero.max_mana,hero.mana+1)
-        movement = input("USE [W, A, S, D] TO MOVE; ITEMS[I]; USE[U]; SAVE[V]; LOAD[L]; QUIT[Q]\nChoice: ").upper()
+        movement = input("USE [W, A, S, D] TO MOVE; ITEMS[I]; USE[U]; LOAD AUTOSAVE[L]; QUIT[Q]\nChoice: ").upper()
 
-        if movement == "V":  # Save
+        if movement == "L":  # Load
             playerMap[y][x] = "@"
-            save_game()
-            break
-
-        elif movement == "L":  # Load
+            clear_screen_2()
             load_game()
             break
 
@@ -578,6 +588,8 @@ while gameloop == True:
             clear_screen_2()
             print("Invalid choice")
             print("              ")
+
+        
 
     if position == ".":
         playerMap[y][x] = "@"

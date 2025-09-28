@@ -3,6 +3,7 @@ from player import Player
 from items import*
 from data import*
 from maps import*
+import player
 
 def print_settlement():
     print("\033c", end="")
@@ -72,7 +73,8 @@ def settlement_1(Player):
                         Player.gold-=30
                         Player.health=Player.max_health
                         Player.mana=Player.max_mana
-                        print("You wake up the next day ready for combat")
+                        player.REQUEST_AUTOSAVE = True
+                        print("You wake up the next day rested and ready for combat. Your progress will be saved when you return to the world.")
                         print("Your health is",Player.health,"and your mana is",Player.mana)    
                         print("                             ")
                         
@@ -334,7 +336,8 @@ def settlement_2(Player):
                         Player.gold-=50
                         Player.health=Player.max_health
                         Player.mana=Player.max_mana
-                        print("You wake up the next day ready for combat")
+                        player.REQUEST_AUTOSAVE = True
+                        print("You wake up the next day rested and ready for combat. Your progress will be saved when you return to the world.")
                         print("Your health is",Player.health,"and your mana is",Player.mana)
                         print("                                      ")
 
@@ -591,7 +594,8 @@ def settlement_3(Player):
                         Player.gold-=50
                         Player.health=Player.max_health
                         Player.mana=Player.max_mana
-                        print("You wake up the next day ready for combat")
+                        player.REQUEST_AUTOSAVE = True
+                        print("You wake up the next day rested and ready for combat. Your progress will be saved when you return to the world.")
                         print("Your health is",Player.health,"and your mana is",Player.mana)    
                         print("                                      ")
                         
@@ -899,7 +903,8 @@ def settlement_4(Player):
                         Player.gold-=50
                         Player.health=Player.max_health
                         Player.mana=Player.max_mana
-                        print("You wake up the next day ready for combat")
+                        player.REQUEST_AUTOSAVE = True
+                        print("You wake up the next day rested and ready for combat. Your progress will be saved when you return to the world.")
                         print("Your health is",Player.health,"and your mana is",Player.mana)
                         print("                                      ")
 
@@ -1129,7 +1134,8 @@ def settlement_5(Player):
                         Player.gold-=50
                         Player.health=Player.max_health
                         Player.mana=Player.max_mana
-                        print("You wake up the next day ready for combat")
+                        player.REQUEST_AUTOSAVE = True
+                        print("You wake up the next day rested and ready for combat. Your progress will be saved when you return to the world.")
                         print("Your health is",Player.health,"and your mana is",Player.mana)    
                         print("                                      ")
                         
