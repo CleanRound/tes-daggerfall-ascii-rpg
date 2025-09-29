@@ -1,4 +1,17 @@
 from items import*
+from pathlib import Path
+import sys
+
+def resource_path(*parts: str) -> str:
+    if getattr(sys, "frozen", False):
+        base = Path(sys.executable).parent
+        contents = base / "_internal"
+        if contents.exists():
+            base = contents
+        base = Path(getattr(sys, "_MEIPASS", base))
+    else:
+        base = Path(__file__).parent
+    return str(base.joinpath(*parts))
 
 weapon_list = [DemonBastardSword, DoomHammer, DemonBoneAxe, ShadowBlade]
 

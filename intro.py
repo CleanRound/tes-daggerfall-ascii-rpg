@@ -1,6 +1,7 @@
 import winsound
 import time
 import os
+from data import resource_path
 
 
 def intro_animation():
@@ -250,7 +251,7 @@ def intro_animation():
 
 
 def Intro():
-    winsound.PlaySound(".\\music\\intro.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+    winsound.PlaySound(resource_path("music", "intro.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
     intro_animation()   
     time.sleep(1)
     input("Press [Enter] to begin your struggle...")

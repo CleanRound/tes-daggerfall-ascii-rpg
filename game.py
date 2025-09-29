@@ -12,6 +12,7 @@ import winsound
 import pathlib
 import gzip, hashlib, tempfile
 import player as _player_mod
+from data import resource_path
 
 SAVES_DIR = pathlib.Path("saves"); SAVES_DIR.mkdir(exist_ok=True)
 SAVE_MAGIC = b"DAGGERFALL\0"
@@ -158,7 +159,7 @@ def load_game():
         pass
 
     try:
-        winsound.PlaySound(".\\music\\background.wav",
+        winsound.PlaySound(resource_path("music", "background.wav"),
                            winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
     except Exception:
         pass
@@ -224,7 +225,7 @@ trigger=0
 
 
 
-winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
 
 
 
@@ -268,7 +269,7 @@ while gameloop == True:
                 playerMap[y][x] = "@"
                 clear_screen_2()
                 print("Music change")
-                winsound.PlaySound(".\\music\\bloodpit.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "bloodpit.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 music=1
                 break
 
@@ -277,7 +278,7 @@ while gameloop == True:
                 playerMap[y][x] = "@"
                 clear_screen_2()
                 print("Music change")
-                winsound.PlaySound(".\\music\\intro.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "intro.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 music=2
                 break
 
@@ -286,7 +287,7 @@ while gameloop == True:
                 playerMap[y][x] = "@"
                 clear_screen_2()
                 print("Music change")
-                winsound.PlaySound(".\\music\\boss.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "boss.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 music=3
                 break
 
@@ -295,7 +296,7 @@ while gameloop == True:
                 playerMap[y][x] = "@"
                 clear_screen_2()
                 print("Music change")
-                winsound.PlaySound(".\\music\\rave.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "rave.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 music=4
                 break
 
@@ -305,7 +306,7 @@ while gameloop == True:
                 clear_screen_2()
                 print("Music on")
                 winsound.PlaySound(None,  winsound.SND_ALIAS)    
-                winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 music=0
                 break
 
@@ -326,7 +327,7 @@ while gameloop == True:
                 clear_screen_2()
                 print("Music on")
                 winsound.PlaySound(None,  winsound.SND_ALIAS)    
-                winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+                winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
                 sound=0
                 break
                 
@@ -635,7 +636,7 @@ while gameloop == True:
         playerMap[y][x] = "@"
         clear_screen_2()
         if cave==1:
-            winsound.PlaySound(".\\music\\rave.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "rave.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             cave=0
             trigger=1
         print("You feel something different...")
@@ -647,7 +648,7 @@ while gameloop == True:
         playerMap[y][x] = "@"
         clear_screen_2()
         if trigger==1:
-            winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             trigger=0
         cave=1
         print("You see a wooden sign, it says")

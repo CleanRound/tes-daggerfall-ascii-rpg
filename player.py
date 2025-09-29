@@ -4,6 +4,7 @@ from items import*
 import winsound
 import time
 from animation import ending
+from data import resource_path
 
 REQUEST_AUTOSAVE = False
 
@@ -505,7 +506,7 @@ class Player(object):
             elif self.health<=0:
                 time.sleep(1)
                 #print("\033c")
-                winsound.PlaySound(".\\music\\rip.wav",winsound.SND_ALIAS | winsound.SND_ASYNC) 
+                winsound.PlaySound(resource_path("music", "rip.wav"), winsound.SND_ALIAS | winsound.SND_ASYNC) 
                 ending()
                 print("Wounds upon wounds, you fall in battle")
                 print("You have lost against the consuming darkness")

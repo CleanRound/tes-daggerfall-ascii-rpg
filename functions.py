@@ -4,6 +4,7 @@ from player import Player
 from data import nothing_list,weapon_list
 from items import*
 import winsound
+from data import resource_path
 
 def nothing():
     nothing = random.choice(nothing_list)
@@ -185,16 +186,16 @@ def outside_sideboss_2(Player):
             Player.sideboss_2_alive = False
 
 def doom_king(Player):
-        winsound.PlaySound(".\\music\\boss.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+        winsound.PlaySound(resource_path("music", "boss.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
         print("You see the Doom King on his throne. He speaks, 'A new challenger, how exciting' ")
         Player.enemy("Doom King", 75, 6666, 10000, 1000000, "Demon Bone")
         if Player.flee == True:
-            winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             print("\033c", end="")
             pass
         else:       
             print("\033c", end="")
-            winsound.PlaySound(".\\music\\ending.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "ending.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             print("You defeated the Doom King, you have freed the land from his evil hands")
             print("You have conquered the final 'end game' boss, thank you for playing!!! ")
             print("You gain 1 million gold")
@@ -204,7 +205,7 @@ def doom_king(Player):
             Player.inventory.append(DoomKingSword())
             print("                       ")
             input("Press [Enter] to continue...")
-            winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             Player.doom_king_alive = False
 
 
@@ -432,7 +433,7 @@ def blood_pit( Player):
         Choice = input("Do you want to enter? Yes(Y) or No(N) ").upper()
 
         if Choice == ("Y"):
-            winsound.PlaySound(".\\music\\bloodpit.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "bloodpit.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
             print("Escaping a duel will reset the arena")
             print("There are 12 opponents")
             input("Press [Enter] to continue...")
@@ -515,7 +516,7 @@ def blood_pit( Player):
                 break
             
             print("Your score was", score)
-            winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SND_ASYNC + winsound.SND_LOOP)
+            winsound.PlaySound(resource_path("music", "background.wav"),  winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
 
             if score == 12:
                 print("You have defeated the arena")
