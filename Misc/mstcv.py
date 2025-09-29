@@ -38,26 +38,22 @@ def displayMapAround(maps, x, y):
     max_x = len(maps[0]) - 1
 
     y0 = max(0, y - 7)
-    y1 = min(max_y, y + 7)         # inclusive row limit; we'll use +1 in range()
+    y1 = min(max_y, y + 7)
 
     x0 = max(0, x - 4)
-    # end-exclusive slice bound matching the original x+5 (clamped safely)
     x1 = min(max_x + 1, x + 5)
 
-    for yy in range(y0, y1 + 1):   # inclusive rows, total up to 15 lines
-        print(maps[yy][x0:x1])     # end-exclusive, total up to 9 columns
+    for yy in range(y0, y1 + 1):
+        print(maps[yy][x0:x1])
 
 
 
-#Displaying the map
 def displayMap(maps):
     for row in maps:
         print(row)
 
-#selecting a map
 mapChoice = dungeonMap
 
-#initialising the players position
 position = mapChoice[y][x]
 
 
@@ -88,8 +84,8 @@ while position != "E":
     elif movement in {b'm', b'M'}:
         displayMapAround(playerMap, x, y)
         print("[M] Press any key to return...")
-        msvcrt.getch()               # pause so the map is visible
-        playerMap[y][x] = "S"        # restore marker before continue
+        msvcrt.getch()
+        playerMap[y][x] = "S"
         continue
 
     nx = max(0, min(max_x, nx))

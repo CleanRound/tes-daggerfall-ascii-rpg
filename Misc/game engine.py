@@ -2,7 +2,6 @@
 import os
 
 
-#map
 dungeonMap = [ [" "," "," "," ","0","0","0","0","0","0","0","0","0"," "," "," "," "],
                [" "," "," "," ","0",".",".","0",".",".",".",".","0"," "," "," "," "],
                [" "," "," "," ","0",".",".",".",".",".",".","0","0"," "," "," "," "],
@@ -53,25 +52,22 @@ def displayMapAround(maps, x, y):
     max_x = len(maps[0]) - 1
 
     y0 = max(0, y - 7)
-    y1 = min(max_y, y + 7)         # inclusive row limit; we'll use +1 in range()
+    y1 = min(max_y, y + 7)
 
     x0 = max(0, x - 4)
-    # end-exclusive slice bound matching the original x+5 (clamped safely)
     x1 = min(max_x + 1, x + 5)
 
-    for yy in range(y0, y1 + 1):   # inclusive rows, total up to 15 lines
-        print(maps[yy][x0:x1])     # end-exclusive, total up to 9 columns
+    for yy in range(y0, y1 + 1):
+        print(maps[yy][x0:x1])
 
 
 
-#Displaying the map
 def displayMap(maps):
     for y in range(len(maps)):
         print(maps[y])
 
 os.system("mode con cols=150 lines=50")
 
-#selecting a map
 mapChoice = dungeonMap
 
 max_y = len(mapChoice) - 1
@@ -79,7 +75,6 @@ max_x = len(mapChoice[0]) - 1
 
 displayMapAround(playerMap,x,y)
 
-#initialising the players position
 position = mapChoice[y][x]
 
 
@@ -88,7 +83,6 @@ print(mapChoice[y][x])
 while position != "E":
     print("\033c", end="")
     displayMapAround(playerMap,x,y)
-    #displayMap(playerMap)
     playerMap[y][x] = "."
     movement = input("W,S,D,A,MAP").upper()
 

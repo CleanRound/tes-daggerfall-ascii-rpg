@@ -14,7 +14,7 @@ import gzip, hashlib, tempfile
 import player as _player_mod
 
 SAVES_DIR = pathlib.Path("saves"); SAVES_DIR.mkdir(exist_ok=True)
-SAVE_MAGIC = b"MYGAME\0"   # keep as your game id
+SAVE_MAGIC = b"DAGGERFALL\0"
 SAVE_VERSION = 1
 
 def _pack(state: dict) -> bytes:
@@ -40,21 +40,18 @@ def rebuild_derived():
     """Recompute derived state after loading a save."""
     global position, max_x, max_y
 
-    # Make sure map bounds are correct (used by movement clamps/render)
     try:
         max_y = len(mapChoice) - 1
         max_x = len(mapChoice[0]) - 1
     except Exception:
         pass
 
-    # Ensure the map marker and position are consistent
     try:
         playerMap[y][x] = "@"
         position = mapChoice[y][x]
     except Exception:
         pass
 
-    # If your Player class has a recompute hook, call it safely
     try:
         hero.recalc_stats()
     except Exception:
@@ -62,7 +59,6 @@ def rebuild_derived():
 
 def save_game(slot: str | None = None, silent: bool = False):
     """Autosave only: write to /saves/autosave.sav with atomic replace and .bak backup."""
-    # fixed autosave filename (manual names are gone)
     slot = "autosave.sav"
 
     state = {
@@ -76,7 +72,6 @@ def save_game(slot: str | None = None, silent: bool = False):
     blob = _pack(state)
     target = SAVES_DIR / slot
 
-    # Windows-safe temp write (close handle before replace)
     fd, tmp_name = tempfile.mkstemp(prefix="._tmp_", dir=SAVES_DIR)
     tmp_path = pathlib.Path(tmp_name)
     try:
@@ -84,7 +79,6 @@ def save_game(slot: str | None = None, silent: bool = False):
             f.write(blob)
             f.flush(); os.fsync(f.fileno())
 
-        # backup previous autosave, if any
         if target.exists():
             backup = target.with_suffix(target.suffix + ".bak")
             try:
@@ -92,10 +86,8 @@ def save_game(slot: str | None = None, silent: bool = False):
             except Exception:
                 pass
 
-        # atomic replace
         os.replace(tmp_path, target)
 
-        # UX only for manual saves (we run silent=True for autosaves)
         if not silent:
             clear_screen_2()
             print(f"Saved successfully as: {target.stem}")
@@ -126,13 +118,11 @@ def load_game():
         input("Press [Enter] to continue.")
         return
 
-    # --- read & unpack with backup recovery ---
     try:
         with open(path, "rb") as f:
             buf = f.read()
         state = _unpack(buf)
     except Exception:
-        # try .bak fallback
         bak = path.with_suffix(path.suffix + ".bak")
         if bak.exists():
             print("Autosave appears corrupted. Trying backup (.bak)...")
@@ -141,7 +131,6 @@ def load_game():
                     buf = f.read()
                 state = _unpack(buf)
                 print("Loaded from backup.")
-                # Optionally promote .bak back to main:
                 try:
                     with open(path, "wb") as f:
                         f.write(buf)
@@ -156,21 +145,18 @@ def load_game():
             input("Press [Enter] to continue.")
             return
 
-    # --- restore state ---
     hero       = state["hero"]
     x, y       = state["x"], state["y"]
     playerMap  = state["playerMap"]
     local_name = state.get("local_name", "Nameless")
     music      = state.get("music", 0)
 
-    # place the player marker and rebuild any derived values
     playerMap[y][x] = "@"
     try:
         rebuild_derived()
     except Exception:
         pass
 
-    # resume background music
     try:
         winsound.PlaySound(".\\music\\background.wav",
                            winsound.SND_ALIAS | winsound.SND_ASYNC | winsound.SND_LOOP)
@@ -197,14 +183,13 @@ def displayMapAround(maps, x, y):
     max_x = len(maps[0]) - 1
 
     y0 = max(0, y - 7)
-    y1 = min(max_y, y + 7)         # inclusive row limit; we'll use +1 in range()
+    y1 = min(max_y, y + 7)
 
     x0 = max(0, x - 4)
-    # end-exclusive slice bound matching the original x+5 (clamped safely)
     x1 = min(max_x + 1, x + 5)
 
-    for yy in range(y0, y1 + 1):   # inclusive rows, total up to 15 lines
-        print(maps[yy][x0:x1])     # end-exclusive, total up to 9 columns
+    for yy in range(y0, y1 + 1):
+        print(maps[yy][x0:x1])
 
 def clear_screen_2():
     print("\033c", end="")     
@@ -245,7 +230,6 @@ winsound.PlaySound(".\\music\\background.wav",  winsound.SND_ALIAS | winsound.SN
 
 while gameloop == True:
     if getattr(_player_mod, "REQUEST_AUTOSAVE", False):
-        # save to a fixed slot so players can’t scum by name-hopping
         save_game("autosave", silent=True)
         _player_mod.REQUEST_AUTOSAVE = False
     while True:
@@ -267,7 +251,7 @@ while gameloop == True:
         hero.mana=min(hero.max_mana,hero.mana+1)
         movement = input("USE [W, A, S, D] TO MOVE; ITEMS[I]; USE[U]; LOAD AUTOSAVE[L]; QUIT[Q]\nChoice: ").upper()
 
-        if movement == "L":  # Load
+        if movement == "L":
             playerMap[y][x] = "@"
             clear_screen_2()
             load_game()
